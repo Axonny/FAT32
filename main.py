@@ -2,9 +2,8 @@ from boot_sector import Boot
 
 
 if __name__ == "__main__":
-    with open("VirtualHardDrive.VHD", "rb") as f:
+    with open("mbr.vhd", "rb") as f:
+        f.read(65536)
         boot = Boot(f)
 
-    print(boot.count_sectors)
-
-
+    print(boot.size_sector)
