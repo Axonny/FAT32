@@ -30,5 +30,10 @@ class Boot:
         self.a_file_sys = io.read(8)
         io.read(512 - 90)
 
+    @property
+    def address_fat_table(self) -> str:
+        return hex((self.absolute_number + self.boot_size) * self.size_sector)
 
-
+    @property
+    def address_first_data_cluster(self) -> str:
+        return hex((self.absolute_number + self.boot_size + self.count_fat_table * self.size_fat) * self.size_sector)
