@@ -4,7 +4,8 @@ from typing import BinaryIO
 class Boot:
 
     def __init__(self, io: BinaryIO):
-        io.read(3 + 8)
+        io.read(3)
+        self.name = io.read(8)
         self.size_sector = int.from_bytes(io.read(2), "little")
         self.sectors_in_cluster = int.from_bytes(io.read(1), "little")
         self.boot_size = int.from_bytes(io.read(2), "little")
@@ -27,6 +28,7 @@ class Boot:
         self.date = int.from_bytes(io.read(4), "little")
         self.mark = io.read(11)
         self.a_file_sys = io.read(8)
+        io.read(512 - 90)
 
 
 
