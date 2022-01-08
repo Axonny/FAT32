@@ -1,5 +1,6 @@
 from py_cui import PyCUI, GREEN_ON_BLACK, YELLOW_ON_BLACK, keys
 from os import path
+from file_description import FileDescriptor
 
 
 class ExplorerWindow:
@@ -17,7 +18,6 @@ class ExplorerWindow:
         title = path.normpath(tom)
         self.explorer_scroll_menu = self.view.add_scroll_menu(title, 0, 0, row_span=10, column_span=10)
         self.explorer_scroll_menu.add_key_command(keys.KEY_ENTER, self.select)
-        self.explorer_scroll_menu.add_text_color_rule("Mounted at", YELLOW_ON_BLACK, "contains")
         self.explorer_scroll_menu.set_selected_color(GREEN_ON_BLACK)
 
         self.view.move_focus(self.explorer_scroll_menu)
@@ -39,10 +39,35 @@ class ExplorerWindow:
 
     def select(self):
         descriptor = self.explorer_scroll_menu.get()
-        name = str(descriptor)
-        title = self.explorer_scroll_menu.get_title()
-        title = path.join(title, name)
-        title = path.normpath(title)
-        self.explorer_scroll_menu.set_title(title)
+        if descriptor.attrs == FileDescriptor.DIRECTORY_FLAGS:
+            name = str(descriptor)
+            title = self.explorer_scroll_menu.get_title()
+            title = path.join(title, name)
+            title = path.normpath(title)
+            self.explorer_scroll_menu.set_title(title)
         self.callback(descriptor)
-        # self.replace_list(['.', '..', *map(str, range(1, 10))])
+
+
+class NotepadWindow:
+    def __init__(self, filename: str):
+        self.view = PyCUI(10, 10)
+        self.view.toggle_unicode_borders()
+        self.view.set_title("FAT32 Viewer")
+        self.content_box = None
+
+        self.create_ui_content(filename)
+
+    def create_ui_content(self, title: str):
+        self.content_box = self.view.add_text_block(title, 0, 0, row_span=10, column_span=10)
+        self.view.move_focus(self.content_box)
+
+    def set_text(self, text: str):
+        self.content_box.set_text(text)
+
+    def start(self):
+        self.view.start()
+
+    def close(self):
+        if self.view is None:
+            return
+        self.view.stop()
