@@ -26,6 +26,7 @@ def find_folder(f, boot, fat, window):
         if elem.attrs & FileDescriptor.DIRECTORY_FLAGS:
             list_dir = get_list(f, boot, fat, elem.cluster_address or 2)
             window.replace_list(list_dir)
+
     return wrapper
 
 
@@ -44,6 +45,16 @@ def get_list(f, boot, fat, start_cluster):
                 lst.append(fd)
         if (start_cluster := fat.get_next_cluster_number(start_cluster)) is None:
             return lst
+
+
+def get_file(f, boot, fat, start_cluster):
+    ans = bytes()
+    while True:
+        n_ = int(boot.address_first_data_cluster, 16) + (start_cluster - 2) * boot.size_sector * boot.sectors_in_cluster
+        f.seek(n_)
+        bytes += f.read(boot.sectors_in_cluster * boot.size_sector)
+        if (start_cluster := fat.get_next_cluster_number(start_cluster)) is None:
+            return ans
 
 
 def main():
