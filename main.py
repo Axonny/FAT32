@@ -9,7 +9,7 @@ def initialize(filename: str):
         f.seek(65536)
         boot = Boot(f)
         f.seek(int(boot.address_fat_table, 16))
-        fat = FatTable(boot.size_fat, f)
+        fat = FatTable(boot.size_fat * boot.sectors_in_cluster * boot.size_sector // 4, f)
         lst = get_list(f, boot, fat, 2)
         filtered = list(filter(lambda x: x.attrs != 8, lst))
         tom = next(filter(lambda x: x.attrs == 8, lst))
@@ -22,10 +22,9 @@ def initialize(filename: str):
 
 def find_folder(f, boot, fat, window):
     def wrapper(elem: FileDescriptor):
-        print(elem)
+        print(elem.cluster_address)
         if elem.attrs & FileDescriptor.DIRECTORY_FLAGS:
             list_dir = get_list(f, boot, fat, elem.cluster_address or 2)
-            print(list_dir)
             window.replace_list(list_dir)
     return wrapper
 
@@ -48,7 +47,7 @@ def get_list(f, boot, fat, start_cluster):
 
 
 def main():
-    boot, fat = initialize("gpt.vhd")
+    initialize("gpt.vhd")
 
 
 if __name__ == "__main__":

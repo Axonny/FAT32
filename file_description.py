@@ -59,4 +59,6 @@ class FileDescriptor:
     def get_name(self):
         if hasattr(self, "long_name"):
             return self.long_name
+        if self.type:
+            return self.short_name + '.' + self.type.lower()
         return self.short_name
