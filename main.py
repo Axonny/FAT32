@@ -11,10 +11,23 @@ def initialize(filename: str):
         f.seek(int(boot.address_fat_table, 16))
         fat = FatTable(boot.size_fat, f)
         lst = get_list(f, boot, fat, 2)
-        elements = list(map(lambda x: x.get_name(), lst))
-        window = ExplorerWindow(elements)
+        filtered = list(filter(lambda x: x.attrs != 8, lst))
+        tom = next(filter(lambda x: x.attrs == 8, lst))
+        window = ExplorerWindow(tom.get_name(), filtered)
+        window.callback = find_folder(f, boot, fat, window)
+        window.start()
 
     return boot, fat
+
+
+def find_folder(f, boot, fat, window):
+    def wrapper(elem: FileDescriptor):
+        print(elem)
+        if elem.attrs & FileDescriptor.DIRECTORY_FLAGS:
+            list_dir = get_list(f, boot, fat, elem.cluster_address)
+            print(list_dir)
+            window.replace_list(list_dir)
+    return wrapper
 
 
 def get_list(f, boot, fat, start_cluster):

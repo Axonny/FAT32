@@ -3,18 +3,18 @@ from os import path
 
 
 class ExplorerWindow:
-    def __init__(self, start_list: list[str]):
+    def __init__(self, tom: str, start_list: list):
         self.view = PyCUI(10, 10)
         self.view.toggle_unicode_borders()
         self.view.set_title("FAT32 Explorer")
         self.explorer_scroll_menu = None
+        self.callback = None
 
-        self.create_ui_content()
+        self.create_ui_content(tom)
         self.replace_list(start_list)
-        self.view.start()
 
-    def create_ui_content(self):
-        title = path.normpath("/")
+    def create_ui_content(self, tom: str):
+        title = path.normpath(tom)
         self.explorer_scroll_menu = self.view.add_scroll_menu(title, 0, 0, row_span=10, column_span=10)
         self.explorer_scroll_menu.add_key_command(keys.KEY_ENTER, self.select)
         self.explorer_scroll_menu.add_text_color_rule("Mounted at", YELLOW_ON_BLACK, "contains")
@@ -29,19 +29,20 @@ class ExplorerWindow:
     def clear_list(self):
         self.explorer_scroll_menu.clear()
 
+    def start(self):
+        self.view.start()
+
     def close(self):
         if self.view is None:
             return
         self.view.stop()
 
     def select(self):
-        name = self.explorer_scroll_menu.get()
+        descriptor = self.explorer_scroll_menu.get()
+        name = str(descriptor)
         title = self.explorer_scroll_menu.get_title()
         title = path.join(title, name)
         title = path.normpath(title)
         self.explorer_scroll_menu.set_title(title)
+        self.callback(descriptor)
         # self.replace_list(['.', '..', *map(str, range(1, 10))])
-
-
-if __name__ == '__main__':
-    ExplorerWindow()

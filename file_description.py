@@ -39,8 +39,8 @@ class FileDescriptor:
         return ans
 
     def _parse_common_descriptor(self, data):
-        self.short_name = data[:8].decode().strip()
-        self.type = data[8:11].decode().strip()
+        self.short_name = data[:8].decode('utf-8').strip()
+        self.type = data[8:11].decode('utf-8').strip()
         self.attrs = data[11]
         self.reserved = data[12]
         self.seconds_creation = data[13]
@@ -51,6 +51,9 @@ class FileDescriptor:
         self.data_writed = int.from_bytes(data[24:26], "little")
         self.cluster_address = (int.from_bytes(data[20:22], "little") << 16) + int.from_bytes(data[26:28], "little")
         self.size = int.from_bytes(data[28:], "little")
+
+    def __str__(self):
+        return self.get_name()
 
     def get_name(self):
         if hasattr(self, "long_name"):
