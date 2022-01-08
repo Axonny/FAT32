@@ -19,13 +19,13 @@ class FileDescriptor:
             for i in range(count - 1):
                 data = io.read(32)
                 name = self._extract_name(data) + name
-            self.long_name = name.decode().strip()
+            self.long_name = name.decode('utf-8').strip()
             self.data = io.read(32)
         self._parse_common_descriptor(self.data)
 
-
-    def _extract_name(self, bytes):
-        temp = bytes[1:11] + bytes[14:25] + bytes[-4:]
+    @staticmethod
+    def _extract_name(_bytes):
+        temp = _bytes[1:11] + _bytes[14:25] + _bytes[-4:]
         ans = b''
         for i in temp:
             if i != 255:
@@ -47,3 +47,8 @@ class FileDescriptor:
         self.data_writed = int.from_bytes(data[24:26], "little")
         self.cluster_address = (int.from_bytes(data[20:22], "little") << 16) + int.from_bytes(data[26:28], "little")
         self.size = int.from_bytes(data[28:], "little")
+
+    def get_name(self):
+        if hasattr(self, "long_name"):
+            return self.long_name
+        return self.short_name
