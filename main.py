@@ -20,10 +20,12 @@ def initialize(filename: str):
 def get_list(f, boot, fat, start_cluster):
     lst = []
     while True:
-        n_ = int(boot.address_first_data_cluster, 16) + (start_cluster - 2) * 512
+        n_ = int(boot.address_first_data_cluster, 16) + (start_cluster - 2) * boot.size_sector * boot.sectors_in_cluster
         f.seek(n_)
-        for i in range(16):
+        i = 0
+        while i < 16:
             fd = FileDescriptor(f)
+            i += fd.count
             if fd.empty:
                 return lst
             else:

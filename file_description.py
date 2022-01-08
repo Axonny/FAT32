@@ -6,6 +6,7 @@ class FileDescriptor:
     DIRECTORY_FLAGS = 16
 
     def __init__(self, io: BinaryIO):
+        self.count = 0
         self.empty = False
         self.data = io.read(12)
         if self.data[0] == 0:
@@ -16,11 +17,14 @@ class FileDescriptor:
         if self.flags == FileDescriptor.LONG_FLAGS:
             count = self.data[0] - 64
             name = self._extract_name(self.data)
+            self.count += 1
             for i in range(count - 1):
                 data = io.read(32)
                 name = self._extract_name(data) + name
+                self.count += 1
             self.long_name = name.decode('utf-8').strip()
             self.data = io.read(32)
+        self.count += 1
         self._parse_common_descriptor(self.data)
 
     @staticmethod
