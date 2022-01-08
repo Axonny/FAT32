@@ -22,6 +22,17 @@ def find_folder(f, boot, fat, window):
     return wrapper
 
 
+def save_to_user(f, boot, fat):
+    def wrapper(elem: FileDescriptor):
+        if elem.attrs & FileDescriptor.DIRECTORY_FLAGS:
+            ...
+        else:
+            _bytes = get_file(f, boot, fat, elem.cluster_address)
+            with open(elem.get_name(), 'wb') as file:
+                file.write(_bytes)
+    return wrapper
+
+
 def get_list(f, boot, fat, start_cluster):
     lst = []
     while True:
@@ -60,6 +71,7 @@ def main():
         tom = next(filter(lambda x: x.attrs == 8, lst))
         window = ExplorerWindow(tom.get_name(), filtered)
         window.callback = find_folder(f, boot, fat, window)
+        window.save = save_to_user(f, boot, fat)
         window.start()
 
 

@@ -1,4 +1,4 @@
-from py_cui import PyCUI, GREEN_ON_BLACK, YELLOW_ON_BLACK, keys
+from py_cui import PyCUI, GREEN_ON_BLACK, keys
 from os import path
 from file_description import FileDescriptor
 
@@ -10,6 +10,7 @@ class ExplorerWindow:
         self.view.set_title("FAT32 Explorer")
         self.explorer_scroll_menu = None
         self.callback = None
+        self.save = None
 
         self.create_ui_content(tom)
         self.replace_list(start_list)
@@ -18,6 +19,7 @@ class ExplorerWindow:
         title = path.normpath(tom)
         self.explorer_scroll_menu = self.view.add_scroll_menu(title, 0, 0, row_span=10, column_span=10)
         self.explorer_scroll_menu.add_key_command(keys.KEY_ENTER, self.select)
+        self.explorer_scroll_menu.add_key_command(keys.KEY_CTRL_C, self.save_to_user)
         self.explorer_scroll_menu.set_selected_color(GREEN_ON_BLACK)
 
         self.view.move_focus(self.explorer_scroll_menu)
@@ -39,13 +41,17 @@ class ExplorerWindow:
 
     def select(self):
         descriptor = self.explorer_scroll_menu.get()
-        if descriptor.attrs == FileDescriptor.DIRECTORY_FLAGS:
+        if descriptor.attrs & FileDescriptor.DIRECTORY_FLAGS:
             name = str(descriptor)
             title = self.explorer_scroll_menu.get_title()
             title = path.join(title, name)
             title = path.normpath(title)
             self.explorer_scroll_menu.set_title(title)
         self.callback(descriptor)
+
+    def save_to_user(self):
+        descriptor = self.explorer_scroll_menu.get()
+        self.save(descriptor)
 
 
 class NotepadWindow:
