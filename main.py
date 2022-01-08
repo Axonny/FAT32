@@ -24,7 +24,7 @@ def find_folder(f, boot, fat, window):
     def wrapper(elem: FileDescriptor):
         print(elem)
         if elem.attrs & FileDescriptor.DIRECTORY_FLAGS:
-            list_dir = get_list(f, boot, fat, elem.cluster_address)
+            list_dir = get_list(f, boot, fat, elem.cluster_address or 2)
             print(list_dir)
             window.replace_list(list_dir)
     return wrapper

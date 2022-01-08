@@ -33,7 +33,8 @@ class FileDescriptor:
         ans = b''
         for i in temp:
             if i != 255:
-                ans += i.to_bytes(1, "little")
+                if i != 0:
+                    ans += i.to_bytes(1, "little")
             else:
                 return ans
         return ans
