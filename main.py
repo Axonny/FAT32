@@ -1,7 +1,9 @@
+from os import path, mkdir
 from boot_sector import Boot
 from fat_table import FatTable
 from file_description import FileDescriptor
 from cui import ExplorerWindow, NotepadWindow
+from stream import FatStream
 
 
 def find_folder(f, boot, fat, window):
@@ -13,6 +15,7 @@ def find_folder(f, boot, fat, window):
             window.close()
             notepad = NotepadWindow(elem.get_name())
             try:
+                print(hex(elem.cluster_address))
                 notepad.set_text(get_file(f, boot, fat, elem.cluster_address).decode('utf-8'))
                 notepad.start()
             except UnicodeDecodeError:
@@ -23,24 +26,29 @@ def find_folder(f, boot, fat, window):
 
 
 def save_to_user(f, boot, fat):
-    def wrapper(elem: FileDescriptor):
+    def wrapper(elem: FileDescriptor, p: str = "./"):
+        p = path.normpath(p)
         if elem.attrs & FileDescriptor.DIRECTORY_FLAGS:
-            ...
+            if not path.exists(path.join(p, elem.get_name())):
+                mkdir(path.join(p, elem.get_name()))
+            lst = get_list(f, boot, fat, elem.cluster_address)
+            for next_elem in lst:
+                if next_elem.get_name() not in ['.', '..']:
+                    wrapper(next_elem, path.join(p, elem.get_name()))
         else:
             _bytes = get_file(f, boot, fat, elem.cluster_address)
-            with open(elem.get_name(), 'wb') as file:
+            with open(path.join(p, elem.get_name()), 'wb') as file:
                 file.write(_bytes)
     return wrapper
 
 
 def get_list(f, boot, fat, start_cluster):
     lst = []
+    fat_stream = FatStream(boot, fat, f, start_cluster)
     while True:
-        n_ = int(boot.address_first_data_cluster, 16) + (start_cluster - 2) * boot.size_sector * boot.sectors_in_cluster
-        f.seek(n_)
         i = 0
         while i < 16:
-            fd = FileDescriptor(f)
+            fd = FileDescriptor(fat_stream)
             i += fd.count
             if fd.empty:
                 return lst

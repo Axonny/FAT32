@@ -1,11 +1,11 @@
-from typing import BinaryIO
+from stream import FatStream
 
 
 class FileDescriptor:
     LONG_FLAGS = 15
     DIRECTORY_FLAGS = 16
 
-    def __init__(self, io: BinaryIO):
+    def __init__(self, io: FatStream):
         self.count = 0
         self.empty = False
         self.data = io.read(12)
