@@ -34,3 +34,24 @@ class FatStream:
     def calc_address(self, num: int):
         return int(self.boot.address_first_data_cluster, 16) + \
                (num - 2) * self.boot.size_sector * self.boot.sectors_in_cluster
+
+    def get_cursor_position(self):
+        return self.calc_address(self.start) + self.pointer
+
+    def write(self, address, symbol):
+        self.f.seek(address)
+        print(hex(address), symbol)
+        self.f.write(symbol)
+
+    def delete(self, descriptor):
+        self.write(descriptor.descr_address, 0xE5.to_bytes(1, "little"))
+        chain = [descriptor.cluster_address]
+        while cluster := self.fat.get_next_cluster_number(chain[-1]):
+            chain.append(cluster)
+        addr_fat = [int(self.boot.address_fat_table, 16) +
+                    self.boot.size_fat * self.boot.size_sector * i for i in range(self.boot.count_fat_table)]
+        for i in chain:
+            for addr in addr_fat:
+                self.f.seek(addr + 4 * i)
+                self.f.write(0x00000000.to_bytes(4, "little"))
+                self.fat._info[i] = 0

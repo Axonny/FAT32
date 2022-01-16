@@ -6,8 +6,11 @@ class FileDescriptor:
     DIRECTORY_FLAGS = 16
 
     def __init__(self, io: FatStream):
+        self.io = io
         self.count = 0
         self.empty = False
+        self.success = True
+        self.descr_address = io.get_cursor_position()
         self.data = io.read(12)
         if self.data[0] == 0:
             self.empty = True
@@ -22,7 +25,8 @@ class FileDescriptor:
                 data = io.read(32)
                 name = self._extract_name(data) + name
                 self.count += 1
-            self.long_name = name.decode('utf-8').strip()
+            self.long_name = self.try_decode(name)
+            self.descr_address = io.get_cursor_position()
             self.data = io.read(32)
         self.count += 1
         self._parse_common_descriptor(self.data)
@@ -40,8 +44,8 @@ class FileDescriptor:
         return ans
 
     def _parse_common_descriptor(self, data):
-        self.short_name = data[:8].decode('utf-8').strip()
-        self.type = data[8:11].decode('utf-8').strip()
+        self.short_name = self.try_decode(data[:8])
+        self.type = self.try_decode(data[8:11])
         self.attrs = data[11]
         self.reserved = data[12]
         self.seconds_creation = data[13]
@@ -62,3 +66,12 @@ class FileDescriptor:
         if self.type:
             return self.short_name + '.' + self.type.lower()
         return self.short_name
+
+    def try_decode(self, _bytes: bytes) -> str:
+        try:
+            return _bytes.decode('utf-8').strip()
+        except UnicodeDecodeError:
+            self.success = False
+
+    def delete(self):
+        self.io.delete(self)

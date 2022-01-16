@@ -2,9 +2,9 @@ from typing import BinaryIO
 
 
 class FatTable:
-    ROOT = 268435448
-    DICH = 4294967295
-    END = 268435455
+    ROOT = 0x0ffffff8
+    DICH = 0xffffffff
+    END  = 0x0fffffff
 
     def __init__(self, fat_size: int, io: BinaryIO):
         self._info = []

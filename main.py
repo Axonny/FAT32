@@ -43,6 +43,20 @@ def save_to_user(f, boot, fat):
     return wrapper
 
 
+def delete(f, boot, fat):
+    def wrapper(elem: FileDescriptor):
+        print(elem, elem.cluster_address)
+        if elem.attrs & FileDescriptor.DIRECTORY_FLAGS:
+            lst = get_list(f, boot, fat, elem.cluster_address)
+            for next_elem in lst:
+                if next_elem.get_name() not in ['.', '..']:
+                    wrapper(next_elem)
+            elem.delete()
+        else:
+            elem.delete()
+    return wrapper
+
+
 def get_list(f, boot, fat, start_cluster):
     lst = []
     fat_stream = FatStream(boot, fat, f, start_cluster)
@@ -54,7 +68,8 @@ def get_list(f, boot, fat, start_cluster):
             if fd.empty:
                 return lst
             else:
-                lst.append(fd)
+                if fd.success:
+                    lst.append(fd)
         if (start_cluster := fat.get_next_cluster_number(start_cluster)) is None:
             return lst
 
@@ -70,7 +85,7 @@ def get_file(f, boot, fat, start_cluster):
 
 
 def main():
-    with open("gpt.vhd", "rb") as f:
+    with open("gpt.vhd", "rb+") as f:
         f.seek(65536)
         boot = Boot(f)
         f.seek(int(boot.address_fat_table, 16))
@@ -81,6 +96,7 @@ def main():
         window = ExplorerWindow(tom.get_name(), filtered)
         window.callback = find_folder(f, boot, fat, window)
         window.save = save_to_user(f, boot, fat)
+        window.delete = delete(f, boot, fat)
         window.start()
 
 
